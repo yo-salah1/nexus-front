@@ -206,7 +206,102 @@
                         </div>
                     </section>
 
-                    <!-- 2. PROMPT CONSOLE TUNER -->
+                    <!-- 2. API CREDENTIALS MANAGER (NEW!) -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="key-round" class="w-6 h-6 text-emerald-400"></i>
+                            <h2 class="text-xl font-bold text-white heading-sora">API Gateway Credentials</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-6">Provide secure API keys to authorize direct cloud routing. Keys are loaded into gateway memory securely.</p>
+
+                        <div class="space-y-4">
+                            <!-- Gemini Key -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Google Gemini API Key</label>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="geminiKeyInput" placeholder="gsk-••••••••••••••••••••••••••••••••" class="w-full bg-[#070b13] border border-white/8 rounded-xl px-4 py-3 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-emerald-500 pr-12">
+                                    <button type="button" class="absolute right-3 text-slate-500 hover:text-slate-300" onclick="togglePasswordVisibility('geminiKeyInput', this)">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Claude Key -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Anthropic Claude API Key</label>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="claudeKeyInput" placeholder="sk-ant-••••••••••••••••••••••••••••" class="w-full bg-[#070b13] border border-white/8 rounded-xl px-4 py-3 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-emerald-500 pr-12">
+                                    <button type="button" class="absolute right-3 text-slate-500 hover:text-slate-300" onclick="togglePasswordVisibility('claudeKeyInput', this)">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Groq Key -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Groq Fallback API Key</label>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="groqKeyInput" placeholder="gsk_••••••••••••••••••••••••••••••••" class="w-full bg-[#070b13] border border-white/8 rounded-xl px-4 py-3 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-emerald-500 pr-12">
+                                    <button type="button" class="absolute right-3 text-slate-500 hover:text-slate-300" onclick="togglePasswordVisibility('groqKeyInput', this)">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 3. ADVANCED ORCHESTRATION Presets (NEW!) -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="sliders" class="w-6 h-6 text-blue-400"></i>
+                            <h2 class="text-xl font-bold text-white heading-sora">Gateway Orchestration Parameters</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-6">Fine-tune dynamic failover logic, latency timeouts, and generation creativity presets.</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Temperature Slider -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-slate-400 uppercase tracking-wider">LLM Temperature</span>
+                                    <span id="tempVal" class="font-bold text-blue-400 code-fira">0.7</span>
+                                </div>
+                                <input type="range" id="tempInput" min="0.0" max="1.0" step="0.05" value="0.7" class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="document.getElementById('tempVal').textContent = this.value">
+                                <span class="block text-[10px] text-slate-500">Lower = focused & predictable; Higher = creative & expressive.</span>
+                            </div>
+
+                            <!-- Max Tokens Slider -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-slate-400 uppercase tracking-wider">Max Output Tokens</span>
+                                    <span id="tokensVal" class="font-bold text-blue-400 code-fira">1024</span>
+                                </div>
+                                <input type="range" id="tokensInput" min="256" max="4096" step="128" value="1024" class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" oninput="document.getElementById('tokensVal').textContent = this.value">
+                                <span class="block text-[10px] text-slate-500">Limits the maximum character response depth of AI replies.</span>
+                            </div>
+
+                            <!-- Gateway Timeout Slider -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-slate-400 uppercase tracking-wider">Gateway Timeout</span>
+                                    <span id="timeoutVal" class="font-bold text-purple-400 code-fira">10s</span>
+                                </div>
+                                <input type="range" id="timeoutInput" min="3" max="30" step="1" value="10" class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500" oninput="document.getElementById('timeoutVal').textContent = this.value + 's'">
+                                <span class="block text-[10px] text-slate-500">Timeout limit in seconds before switching to fallback providers.</span>
+                            </div>
+
+                            <!-- Retry Attempts Slider -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-slate-400 uppercase tracking-wider">Failover Retries</span>
+                                    <span id="retriesVal" class="font-bold text-purple-400 code-fira">3</span>
+                                </div>
+                                <input type="range" id="retriesInput" min="0" max="5" step="1" value="3" class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500" oninput="document.getElementById('retriesVal').textContent = this.value">
+                                <span class="block text-[10px] text-slate-500">Number of automatic server reconnection retries before failing.</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 4. PROMPT CONSOLE TUNER -->
                     <section class="glass-panel p-6">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
@@ -344,6 +439,22 @@
             </div>
         </main>
     </div>
+
+    <!-- Inline helpers -->
+    <script>
+        function togglePasswordVisibility(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = "password";
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+    </script>
 
     <!-- Frontend Script Logic -->
     <script src="../js/llm_portal.js"></script>

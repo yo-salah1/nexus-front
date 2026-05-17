@@ -55,13 +55,37 @@ async function loadActiveSettings() {
         const response = await fetch(`${API_BASE_URL}/settings`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         if (response.ok) {
             const settings = await response.json();
+            
+            // Set LLM Routing Provider card highlights
             if (settings.activeLlmProvider) {
                 activeProvider = settings.activeLlmProvider;
-                // Highlight correct card
                 const cards = document.querySelectorAll('.provider-card');
                 cards.forEach(c => {
                     c.classList.toggle('active', c.dataset.provider === activeProvider);
                 });
+            }
+
+            // Load API Keys
+            if (settings.geminiApiKey !== undefined) document.getElementById('geminiKeyInput').value = settings.geminiApiKey;
+            if (settings.claudeApiKey !== undefined) document.getElementById('claudeKeyInput').value = settings.claudeApiKey;
+            if (settings.groqApiKey !== undefined) document.getElementById('groqKeyInput').value = settings.groqApiKey;
+
+            // Load Orchestration presets
+            if (settings.temperature !== undefined) {
+                document.getElementById('tempInput').value = settings.temperature;
+                document.getElementById('tempVal').textContent = settings.temperature;
+            }
+            if (settings.maxTokens !== undefined) {
+                document.getElementById('tokensInput').value = settings.maxTokens;
+                document.getElementById('tokensVal').textContent = settings.maxTokens;
+            }
+            if (settings.gatewayTimeout !== undefined) {
+                document.getElementById('timeoutInput').value = settings.gatewayTimeout;
+                document.getElementById('timeoutVal').textContent = settings.gatewayTimeout + 's';
+            }
+            if (settings.failoverRetries !== undefined) {
+                document.getElementById('retriesInput').value = settings.failoverRetries;
+                document.getElementById('retriesVal').textContent = settings.failoverRetries;
             }
         }
     } catch (err) {
@@ -75,25 +99,34 @@ async function saveGatewayConfig() {
     const originalHTML = saveBtn.innerHTML;
     
     // UI state indicator
-    saveBtn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving...`;
+    saveBtn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Applying...`;
     lucide.createIcons();
     saveBtn.disabled = true;
 
     try {
+        const payload = {
+            activeLlmProvider: activeProvider,
+            geminiApiKey: document.getElementById('geminiKeyInput').value.trim(),
+            claudeApiKey: document.getElementById('claudeKeyInput').value.trim(),
+            groqApiKey: document.getElementById('groqKeyInput').value.trim(),
+            temperature: parseFloat(document.getElementById('tempInput').value),
+            maxTokens: parseInt(document.getElementById('tokensInput').value),
+            gatewayTimeout: parseInt(document.getElementById('timeoutInput').value),
+            failoverRetries: parseInt(document.getElementById('retriesInput').value)
+        };
+
         const res = await fetch(`${API_BASE_URL}/settings`, {
             method: 'PUT',
             headers: {
                 'ngrok-skip-browser-warning': 'true',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                activeLlmProvider: activeProvider
-            })
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
             setTimeout(() => {
-                saveBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Saved Successfully`;
+                saveBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Applied to Gateway`;
                 saveBtn.classList.remove('bg-blue-600');
                 saveBtn.classList.add('bg-emerald-600');
                 lucide.createIcons();

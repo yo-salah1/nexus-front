@@ -51,10 +51,16 @@
                         <span class="submenu-label">Text</span>
                     </div>
                 </a>
+                <a href="mer_live.html">
+                    <div class="submenu-item" id="nav-mer-live">
+                        <i data-lucide="sparkles" class="submenu-icon"></i>
+                        <span class="submenu-label">MER Live Session</span>
+                    </div>
+                </a>
                 <a href="mer.html">
                     <div class="submenu-item" id="nav-mer">
                         <i data-lucide="layers" class="submenu-icon"></i>
-                        <span class="submenu-label">Multimodal (MER)</span>
+                        <span class="submenu-label">MER Analysis</span>
                     </div>
                 </a>
             </div>
@@ -124,6 +130,7 @@
             'ai_chat.html': 'nav-text',
             'premium_voice.html': 'nav-audio',
             'video_chat.html': 'nav-video',
+            'mer_live.html': 'nav-mer-live',
             'mer.html': 'nav-mer',
             'chat_history.html': 'nav-history',
             'settings.html': 'nav-settings',
@@ -138,7 +145,7 @@
             if (el) el.classList.add('active');
             
             // Auto-open submenu if a chat type is active
-            if (['nav-text', 'nav-audio', 'nav-video', 'nav-mer'].includes(activeId)) {
+            if (['nav-text', 'nav-audio', 'nav-video', 'nav-mer-live', 'nav-mer'].includes(activeId)) {
                 const submenu = document.getElementById('chatTypeSubmenu');
                 const newChat = document.getElementById('nav-newchat');
                 if (submenu) submenu.classList.add('active');

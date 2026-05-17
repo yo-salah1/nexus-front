@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - MER Live Session</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/ai_chat.css">
+    <link rel="stylesheet" href="../css/mer.css">
+
+    <link rel="icon" type="image/png" href="../assets/NEXUS_ICON_CROPPED.png">
+    <script src="../js/config.js"></script>
+    
+    <style>
+        .live-chat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(16px);
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            font-size: 13.5px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            animation: fadeInBubble 0.3s ease-out;
+        }
+
+        .chat-bubble.user {
+            background: rgba(255, 255, 255, 0.07);
+            color: #f1f5f9;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-bubble.assistant {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            color: #ffffff;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.05);
+        }
+
+        @keyframes fadeInBubble {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .speaking-pulse {
+            animation: pulseVolume 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseVolume {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.2); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+    
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Workspace -->
+        <main class="mer-main">
+            <button class="mobile-sidebar-toggle" id="mobileSidebarToggle"><i data-lucide="menu"></i></button>
+
+            <!-- Header Section -->
+            <header class="mer-header">
+                <div class="header-content">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2.5 py-0.5 text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">Core Experience</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="text-[10px] text-slate-400 font-semibold">Live Mode</span>
+                        </div>
+                    </div>
+                    <h1>NEXUS Live Companion</h1>
+                    <p>Conversational Real-Time Empathetic Intelligence</p>
+                </div>
+
+                <div class="status-lamps">
+                    <div class="lamp-item" id="lampFER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">FER</span>
+                    </div>
+                    <div class="lamp-item" id="lampSER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">SER</span>
+                    </div>
+                    <div class="lamp-item" id="lampTER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">TER</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Grid Layout -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                
+                <!-- LEFT COLUMN (Xl: 7 Cols) - Webcams & Controls -->
+                <div class="xl:col-span-7 space-y-6">
+                    <div class="video-container relative rounded-2xl overflow-hidden border border-white/8 bg-black/30 aspect-video">
+                        <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
+                        <div class="overlay-visuals absolute inset-0 pointer-events-none">
+                            <canvas id="visualGraph" class="w-full h-full"></canvas>
+                        </div>
+                        
+                        <div class="recording-indicator" id="recIndicator">
+                            <span class="pulse-dot"></span>
+                            LIVE SENSOR
+                        </div>
+                    </div>
+
+                    <!-- Sensor Controller Binds -->
+                    <div class="controls-area flex flex-col items-center p-6 bg-white/3 border border-white/5 rounded-2xl">
+                        <div class="universal-controls flex items-center justify-center gap-6 mb-6">
+                            <div class="u-ctrl-wrap flex flex-col items-center">
+                                <button class="u-ctrl-btn p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition" id="toggleCam" title="Toggle Camera">
+                                    <i data-lucide="video" class="w-5 h-5"></i>
+                                </button>
+                                <div class="u-ctrl-label text-[10px] text-slate-400 mt-1">Camera</div>
+                            </div>
+                            
+                            <div class="u-ctrl-wrap flex flex-col items-center">
+                                <button class="u-ctrl-btn p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition" id="toggleMic" title="Toggle Microphone">
+                                    <i data-lucide="mic" class="w-5 h-5"></i>
+                                </button>
+                                <div class="u-ctrl-label text-[10px] text-slate-400 mt-1">Mic</div>
+                            </div>
+
+                            <div class="u-ctrl-wrap flex flex-col items-center">
+                                <button class="u-ctrl-btn danger p-3 bg-red-600 border border-red-500 rounded-full hover:bg-red-500 transition text-white" id="cancelBtn" title="End Session & Exit">
+                                    <i data-lucide="phone-off" class="w-5 h-5"></i>
+                                </button>
+                                <div class="u-ctrl-label text-[10px] text-slate-400 mt-1">End</div>
+                            </div>
+                        </div>
+
+                        <button class="mer-record-btn flex items-center gap-3 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/25" id="recordBtn">
+                            <div class="btn-icon">
+                                <i data-lucide="mic" id="micIcon" class="w-5 h-5"></i>
+                            </div>
+                            <span id="btnText">Connect Live Companion</span>
+                        </button>
+                        <p class="instruction text-xs text-slate-400 mt-3 font-medium">Click to connect, speak naturally, and watch the AI companion reply.</p>
+                    </div>
+
+                    <!-- Live Transcription Output -->
+                    <div class="transcript-box p-4 bg-white/3 border border-white/5 rounded-2xl" id="transcriptBox">
+                        <div class="box-label text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
+                            <i data-lucide="type" class="w-4 h-4 text-blue-400"></i>
+                            <span>Active Speech Input</span>
+                        </div>
+                        <div id="transcriptText" class="text-sm font-medium text-slate-300 placeholder italic">Awaiting voice capture...</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN (Xl: 5 Cols) - Live AI Dialogue & MER Fusion -->
+                <div class="xl:col-span-5 space-y-6 flex flex-col h-full justify-between">
+                    
+                    <!-- Fused State Card -->
+                    <div class="fusion-card p-6 bg-white/4 border border-white/8 rounded-2xl text-center flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Empathetic State Fused</span>
+                        <div class="big-emoji text-5xl mb-2" id="bigEmoji">😶</div>
+                        <div class="fusion-emotion text-xl font-extrabold text-white heading-sora" id="fusionLabel">Companion Unconnected</div>
+                        <div class="fusion-conf-bar w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-3">
+                            <div class="conf-fill bg-blue-500 h-full rounded-full transition-all duration-300" id="fusionConfFill" style="width: 0%"></div>
+                        </div>
+                        <div class="fusion-conf-text text-xs text-slate-400 mt-1" id="fusionConfText">0% Confidence</div>
+                    </div>
+
+                    <!-- Interactive Real-Time AI Chat Card -->
+                    <div class="live-chat-card flex-1 min-h-[300px]">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                            <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
+                            <span>Empathetic Companion Dialogue</span>
+                        </div>
+                        
+                        <div id="chatHistory" class="flex-1 overflow-y-auto space-y-3 pr-2 flex flex-col">
+                            <!-- Populated dynamically -->
+                            <div class="text-xs text-slate-500 py-6 text-center italic">Connect the Live Companion and start speaking to activate dialogue stream.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Frontend Live Script logic -->
+    <script src="../js/mer_live.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/sidebar.js"></script>
+</body>
+</html>
