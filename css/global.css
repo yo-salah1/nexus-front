@@ -387,7 +387,6 @@ h3 {
         justify-content: center;
     }
 }
-
 /* Sidebar Drawer System (Sharp) */
 @media (max-width: 768px) {
     .sidebar {
@@ -417,7 +416,6 @@ h3 {
         z-index: 1;
     }
 }
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -685,7 +683,7 @@ h3 {
 }
 
 .logo-full {
-    position: absolute;
+    /* position: absolute; */
     height: 40px;
     width: auto;
     left: 1rem;

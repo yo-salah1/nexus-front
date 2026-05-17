@@ -343,8 +343,9 @@ async function checkSystemHealth() {
         updateLamp('FER', data.FER === 'online');
         updateLamp('SER', data.SER === 'online');
         updateLamp('TER', data.TER === 'online');
+        updateLamp('LLM', data.LLM === 'online');
     } catch (err) {
-        ['FER', 'SER', 'TER'].forEach(m => updateLamp(m, false));
+        ['FER', 'SER', 'TER', 'LLM'].forEach(m => updateLamp(m, false));
     }
 }
 
@@ -357,7 +358,7 @@ function updateLamp(id, isOnline) {
 }
 
 function setLampsState(state) {
-    ['FER', 'SER', 'TER'].forEach(m => {
+    ['FER', 'SER', 'TER', 'LLM'].forEach(m => {
         const el = document.getElementById(`lamp${m}`);
         if (!el) return;
         el.classList.remove('online', 'offline', 'analyzing');
