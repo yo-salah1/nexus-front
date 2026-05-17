@@ -68,6 +68,7 @@ async function loadActiveSettings() {
             // Load API Keys
             if (settings.geminiApiKey !== undefined) document.getElementById('geminiKeyInput').value = settings.geminiApiKey;
             if (settings.claudeApiKey !== undefined) document.getElementById('claudeKeyInput').value = settings.claudeApiKey;
+            if (settings.deepseekApiKey !== undefined) document.getElementById('deepseekKeyInput').value = settings.deepseekApiKey;
             if (settings.groqApiKey !== undefined) document.getElementById('groqKeyInput').value = settings.groqApiKey;
 
             // Load Orchestration presets
@@ -108,6 +109,7 @@ async function saveGatewayConfig() {
             activeLlmProvider: activeProvider,
             geminiApiKey: document.getElementById('geminiKeyInput').value.trim(),
             claudeApiKey: document.getElementById('claudeKeyInput').value.trim(),
+            deepseekApiKey: document.getElementById('deepseekKeyInput').value.trim(),
             groqApiKey: document.getElementById('groqKeyInput').value.trim(),
             temperature: parseFloat(document.getElementById('tempInput').value),
             maxTokens: parseInt(document.getElementById('tokensInput').value),

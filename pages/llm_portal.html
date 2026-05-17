@@ -152,7 +152,7 @@
                         </div>
 
                         <!-- Provider Cards Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="providersGrid">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="providersGrid">
                             <!-- Gemini -->
                             <div class="provider-card glass-panel p-4 flex flex-col justify-between h-40 active" data-provider="gemini">
                                 <div class="flex items-start justify-between">
@@ -181,6 +181,23 @@
                                 <div class="mt-4">
                                     <h3 class="font-bold text-white text-sm heading-sora">Anthropic Claude</h3>
                                     <p class="text-xs text-slate-400 mt-1">claude-3-5-sonnet</p>
+                                    <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Standby
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- DeepSeek -->
+                            <div class="provider-card glass-panel p-4 flex flex-col justify-between h-40" data-provider="deepseek">
+                                <div class="flex items-start justify-between">
+                                    <div class="p-2.5 bg-sky-500/10 rounded-xl">
+                                        <i data-lucide="zap" class="w-5 h-5 text-sky-400"></i>
+                                    </div>
+                                    <span class="text-[10px] uppercase font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">Failover 2</span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-bold text-white text-sm heading-sora">DeepSeek Chat</h3>
+                                    <p class="text-xs text-slate-400 mt-1">deepseek-chat</p>
                                     <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-2">
                                         <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Standby
                                     </span>
@@ -232,6 +249,17 @@
                                 <div class="relative flex items-center">
                                     <input type="password" id="claudeKeyInput" placeholder="sk-ant-••••••••••••••••••••••••••••" class="w-full bg-[#070b13] border border-white/8 rounded-xl px-4 py-3 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-emerald-500 pr-12">
                                     <button type="button" class="absolute right-3 text-slate-500 hover:text-slate-300" onclick="togglePasswordVisibility('claudeKeyInput', this)">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- DeepSeek Key -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">DeepSeek API Key</label>
+                                <div class="relative flex items-center">
+                                    <input type="password" id="deepseekKeyInput" placeholder="sk-••••••••••••••••••••••••••••••••" class="w-full bg-[#070b13] border border-white/8 rounded-xl px-4 py-3 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-emerald-500 pr-12">
+                                    <button type="button" class="absolute right-3 text-slate-500 hover:text-slate-300" onclick="togglePasswordVisibility('deepseekKeyInput', this)">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </button>
                                 </div>
