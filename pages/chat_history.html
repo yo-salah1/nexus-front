@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - Chat History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/chat_history.css">
+    <link rel="icon" type="image/png" href="../assets/NEXUS_ICON_CROPPED.png">
+    <script src="../js/config.js"></script>
+</head>
+<body>
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+    <div class="app-container">
+
+        <!-- ===== SIDEBAR — ===== -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+
+        <!-- ===== MAIN — chat history ===== -->
+        <main class="main-content">
+            <header class="history-header">
+                <button class="mobile-sidebar-toggle" id="mobileSidebarToggle"><i data-lucide="menu"></i></button>
+                <h1 class="history-title">Chat history</h1>
+                <div class="date-badge">
+                    <i data-lucide="calendar" class="date-badge-icon"></i>
+                    <span>26 Jul 2023</span>
+                </div>
+            </header>
+
+            <div class="history-list" id="historyList">
+                <!-- cards injected by script11.js -->
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/chat_history.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/sidebar.js"></script>
+</body>
+</html>

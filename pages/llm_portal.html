@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - LLM & Integration Hub</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="icon" type="image/png" href="../assets/NEXUS_ICON_CROPPED.png">
+    
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-glass: rgba(13, 20, 38, 0.45);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --neon-blue: #3b82f6;
+            --neon-purple: #8b5cf6;
+            --neon-green: #10b981;
+            --neon-pink: #ec4899;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .heading-sora {
+            font-family: 'Sora', sans-serif;
+        }
+
+        .code-fira {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass-panel {
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+        }
+
+        .provider-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .provider-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15);
+        }
+
+        .provider-card.active {
+            border-color: var(--neon-blue);
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .glow-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .glow-button:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+            transform: scale(1.02);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(9, 13, 22, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <script src="../js/config.js"></script>
+</head>
+<body>
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+    
+    <div class="app-container">
+        <!-- Global Navigation Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Integration Dashboard Content -->
+        <main class="main-content flex-1 p-6 md:p-10 z-10 overflow-y-auto">
+            <!-- Mobile Toggle -->
+            <button class="mobile-sidebar-toggle md:hidden p-3 bg-[#0d1426] border border-white/10 rounded-lg mb-6" id="mobileSidebarToggle">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Header -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-3 py-1 text-xs font-semibold heading-sora bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">Developer Portal</span>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-xs text-emerald-400">Gateway Active</span>
+                        </div>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-white heading-sora tracking-tight">LLM & Gateway Integration</h1>
+                    <p class="text-sm text-slate-400 mt-1">Direct orchestration control for emotional multi-LLM routing pipelines.</p>
+                </div>
+                
+                <!-- Quick Pings -->
+                <div class="flex items-center gap-3">
+                    <button id="saveConfigBtn" class="glow-button px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Apply Hub Config</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Layout Grid -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                
+                <!-- LEFT 2 COLUMNS: Provider routing & Prompt Engineering -->
+                <div class="xl:col-span-2 space-y-8">
+                    
+                    <!-- 1. LLM ROUTER CONTROLLER -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="cpu" class="w-6 h-6 text-blue-400"></i>
+                                <h2 class="text-xl font-bold text-white heading-sora">AI Model Router</h2>
+                            </div>
+                            <span class="text-xs text-slate-400">Auto-failover enabled</span>
+                        </div>
+
+                        <!-- Provider Cards Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="providersGrid">
+                            <!-- Gemini -->
+                            <div class="provider-card glass-panel p-4 flex flex-col justify-between h-40 active" data-provider="gemini">
+                                <div class="flex items-start justify-between">
+                                    <div class="p-2.5 bg-blue-500/10 rounded-xl">
+                                        <i data-lucide="sparkles" class="w-5 h-5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[10px] uppercase font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Primary</span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-bold text-white text-sm heading-sora">Google Gemini</h3>
+                                    <p class="text-xs text-slate-400 mt-1">gemini-2.5-flash</p>
+                                    <span class="text-[10px] text-emerald-400 flex items-center gap-1 mt-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live Connected
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Claude -->
+                            <div class="provider-card glass-panel p-4 flex flex-col justify-between h-40" data-provider="claude">
+                                <div class="flex items-start justify-between">
+                                    <div class="p-2.5 bg-purple-500/10 rounded-xl">
+                                        <i data-lucide="brain" class="w-5 h-5 text-purple-400"></i>
+                                    </div>
+                                    <span class="text-[10px] uppercase font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Failover 1</span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-bold text-white text-sm heading-sora">Anthropic Claude</h3>
+                                    <p class="text-xs text-slate-400 mt-1">claude-3-5-sonnet</p>
+                                    <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Standby
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Fallback -->
+                            <div class="provider-card glass-panel p-4 flex flex-col justify-between h-40" data-provider="local_fallback">
+                                <div class="flex items-start justify-between">
+                                    <div class="p-2.5 bg-emerald-500/10 rounded-xl">
+                                        <i data-lucide="languages" class="w-5 h-5 text-emerald-400"></i>
+                                    </div>
+                                    <span class="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Fail-safe</span>
+                                </div>
+                                <div class="mt-4">
+                                    <h3 class="font-bold text-white text-sm heading-sora">NEXUS Fallback</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Bilingual Local Engine</p>
+                                    <span class="text-[10px] text-emerald-400 flex items-center gap-1 mt-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Zero-Latency Ready
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. PROMPT CONSOLE TUNER -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="terminal" class="w-6 h-6 text-purple-400"></i>
+                                <h2 class="text-xl font-bold text-white heading-sora">System Prompt Engineering</h2>
+                            </div>
+                            <select id="personaSelector" class="bg-[#090d16] border border-white/10 text-sm text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                <option value="companion">Empathetic Companion</option>
+                                <option value="therapist">Calm Therapist</option>
+                                <option value="jarvis">Jarvis OS</option>
+                                <option value="egyptian">Friendly Egyptian Dialect</option>
+                            </select>
+                        </div>
+
+                        <!-- Active System Prompt Editor -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Expanded System Context</label>
+                                <div class="relative">
+                                    <textarea id="systemPromptArea" rows="12" class="w-full bg-[#070b13] border border-white/8 rounded-xl p-4 text-xs font-medium code-fira text-slate-300 focus:outline-none focus:border-purple-500 leading-relaxed resize-none" readonly></textarea>
+                                    <div class="absolute bottom-3 right-3 bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Interpolated</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-white/3 border border-white/5 rounded-xl text-xs text-slate-400">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="info" class="w-4 h-4 text-purple-400"></i>
+                                    <span>Variables loaded live: `{transcript}`, `{fused_emotion}`, `{confidence}`, `{summary}`, `{timeline}`</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- RIGHT 1 COLUMN: Real-Time Metrics & TIMELINE -->
+                <div class="space-y-8">
+                    
+                    <!-- 1. LIVE METRICS PANEL -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="activity" class="w-6 h-6 text-emerald-400"></i>
+                                <h2 class="text-xl font-bold text-white heading-sora">Gateway Metrics</h2>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        </div>
+
+                        <!-- Metrics Grid -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <!-- Latency -->
+                            <div class="bg-[#070b13] border border-white/5 p-4 rounded-xl">
+                                <span class="text-xs text-slate-400">Avg Latency</span>
+                                <div class="flex items-baseline gap-1 mt-2">
+                                    <span id="metricLatency" class="text-2xl font-bold text-white heading-sora">110</span>
+                                    <span class="text-xs text-slate-500">ms</span>
+                                </div>
+                            </div>
+
+                            <!-- Tokens -->
+                            <div class="bg-[#070b13] border border-white/5 p-4 rounded-xl">
+                                <span class="text-xs text-slate-400">Tokens Ingested</span>
+                                <div class="flex items-baseline gap-1 mt-2">
+                                    <span id="metricTokens" class="text-2xl font-bold text-emerald-400 heading-sora">4,821</span>
+                                    <span class="text-xs text-slate-500">tkn</span>
+                                </div>
+                            </div>
+
+                            <!-- Active Sessions -->
+                            <div class="bg-[#070b13] border border-white/5 p-4 rounded-xl">
+                                <span class="text-xs text-slate-400">Active Sessions</span>
+                                <div class="flex items-baseline gap-1 mt-2">
+                                    <span id="metricSessions" class="text-2xl font-bold text-blue-400 heading-sora">2</span>
+                                    <span class="text-xs text-slate-500">ses</span>
+                                </div>
+                            </div>
+
+                            <!-- Audio chars -->
+                            <div class="bg-[#070b13] border border-white/5 p-4 rounded-xl">
+                                <span class="text-xs text-slate-400">Synthesis Count</span>
+                                <div class="flex items-baseline gap-1 mt-2">
+                                    <span id="metricRequests" class="text-2xl font-bold text-purple-400 heading-sora">32</span>
+                                    <span class="text-xs text-slate-500">rqs</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Models Hardware Status -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Model Service Registers</h3>
+                            
+                            <!-- FER -->
+                            <div class="flex items-center justify-between p-3 bg-[#070b13]/50 border border-white/5 rounded-lg text-xs">
+                                <span class="text-slate-300 font-medium flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> FER (Facial Expression)
+                                </span>
+                                <span id="statusFER" class="font-bold text-slate-400">OFFLINE</span>
+                            </div>
+
+                            <!-- SER -->
+                            <div class="flex items-center justify-between p-3 bg-[#070b13]/50 border border-white/5 rounded-lg text-xs">
+                                <span class="text-slate-300 font-medium flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> SER (Speech Emotion)
+                                </span>
+                                <span id="statusSER" class="font-bold text-slate-400">OFFLINE</span>
+                            </div>
+
+                            <!-- TER -->
+                            <div class="flex items-center justify-between p-3 bg-[#070b13]/50 border border-white/5 rounded-lg text-xs">
+                                <span class="text-slate-300 font-medium flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> TER (Bilingual Text)
+                                </span>
+                                <span id="statusTER" class="font-bold text-emerald-400">ONLINE</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. SESSION TIMELINE TRACKER -->
+                    <section class="glass-panel p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="history" class="w-6 h-6 text-purple-400"></i>
+                                <h2 class="text-lg font-bold text-white heading-sora">Emotional Timeline</h2>
+                            </div>
+                            <span class="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full uppercase">Real-Time</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">Ordered stream of recent fused emotional shifts in the current conversation.</p>
+                        
+                        <div id="timelineContainer" class="space-y-3 relative border-l border-white/10 pl-4 ml-2">
+                            <!-- Populated dynamically -->
+                            <div class="text-xs text-slate-500 py-3 italic">Awaiting session history data...</div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Frontend Script Logic -->
+    <script src="../js/llm_portal.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/sidebar.js"></script>
+</body>
+</html>

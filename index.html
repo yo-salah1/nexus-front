@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - Your AI-Powered Emotional Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/landing.css">
+    <link rel="icon" type="image/png" href="assets/NEXUS_ICON_CROPPED.png">
+    <script src="js/config.js"></script>
+</head>
+
+<body>
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+
+    <!-- Unified Header Injection -->
+    <div id="nexus-header"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i data-lucide="sparkles" class="badge-icon"></i>
+                <span>AI-Powered Emotional Intelligence</span>
+            </div>
+
+            <h1 class="hero-title">
+                Your Personal AI Companion for
+                <span class="gradient-text">Mental Wellness</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                NEXUS uses advanced AI to understand your emotions, provide personalized support, and help you navigate
+                life's challenges with confidence and clarity.
+            </p>
+
+            <div class="hero-cta">
+                <a href="pages/ai_chat.html" class="cta-primary">
+                    <span>Start Today</span>
+                    <i data-lucide="arrow-right" class="cta-icon"></i>
+                </a>
+                <a href="#features" class="cta-secondary">
+                    <i data-lucide="play-circle" class="cta-icon"></i>
+                    <span>See How It Works</span>
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <!-- <div class="stat-item">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Active Users</div>
+            </div> -->
+                <!-- <div class="stat-divider"></div> -->
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfaction Rate</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">AI Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Infinite Marquee Section -->
+    <div class="marquee-section">
+        <div class="marquee-track">
+            <!-- First Set -->
+            <div class="marquee-content">
+                <span>AI Emotional Companion</span><span class="marquee-dot">•</span>
+                <span>Real-Time Mood Tracking</span><span class="marquee-dot">•</span>
+                <span>Empathetic Intelligence</span><span class="marquee-dot">•</span>
+                <span>100% Secure & Private</span><span class="marquee-dot">•</span>
+                <span>24/7 Mental Wellness</span><span class="marquee-dot">•</span>
+            </div>
+            <!-- Duplicated Set for Seamless Loop -->
+            <div class="marquee-content" aria-hidden="true">
+                <span>AI Emotional Companion</span><span class="marquee-dot">•</span>
+                <span>Real-Time Mood Tracking</span><span class="marquee-dot">•</span>
+                <span>Empathetic Intelligence</span><span class="marquee-dot">•</span>
+                <span>100% Secure & Private</span><span class="marquee-dot">•</span>
+                <span>24/7 Mental Wellness</span><span class="marquee-dot">•</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">What We Offer</span>
+                <h2 class="section-title">Powerful Features for Your Well-being</h2>
+                <p class="section-desc">Everything you need to maintain mental wellness and emotional balance</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Feature cards injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section" id="testimonials">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">What Our Users Say</span>
+                <h2 class="section-title">Trusted by Thousands Worldwide</h2>
+                <p class="section-desc">Real stories from people whose lives have been transformed by NEXUS</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <!-- Testimonial cards injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Got Questions?</span>
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-desc">Find answers to common questions about NEXUS</p>
+            </div>
+
+            <div class="faq-container">
+                <!-- FAQ items injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta-section">
+
+        <div class="final-cta-content">
+            <h2 class="final-cta-title">Ready to Transform Your Mental Wellness?</h2>
+            <p class="final-cta-desc">Join thousands of users who have already discovered the power of AI-driven
+                emotional support</p>
+            <a href="pages/ai_chat.html" class="cta-primary-large">
+                <span>Get Started for Free</span>
+                <i data-lucide="arrow-right" class="cta-icon"></i>
+            </a>
+            <p class="final-cta-note">No credit card required • Free forever • Cancel anytime</p>
+        </div>
+    </section>
+
+    <!-- Footer injected by global.js -->
+    <div id="nexus-footer"></div>
+
+    <script src="js/landing.js"></script>
+    <script src="js/global.js"></script>
+</body>
+
+</html>

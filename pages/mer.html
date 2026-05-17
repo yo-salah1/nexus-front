@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - Multimodal Emotion Recognition</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/ai_chat.css">
+    <link rel="stylesheet" href="../css/mer.css">
+
+    <link rel="icon" type="image/png" href="../assets/NEXUS_ICON_CROPPED.png">
+    <script src="../js/config.js"></script>
+</head>
+<body>
+    <!-- Live Background -->
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+    
+    <div class="app-container">
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- ══ MAIN ══ -->
+        <main class="mer-main">
+            <button class="mobile-sidebar-toggle" id="mobileSidebarToggle"><i data-lucide="menu"></i></button>
+
+            <!-- Header Section -->
+            <header class="mer-header">
+                <div class="header-content">
+                    <h1>Multimodal Analysis</h1>
+                    <p>Fusing Facial, Vocal, and Verbal cues for peak emotional intelligence</p>
+                </div>
+
+                <div class="status-lamps">
+                    <div class="lamp-item" id="lampFER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">FER</span>
+                    </div>
+                    <div class="lamp-item" id="lampSER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">SER</span>
+                    </div>
+                    <div class="lamp-item" id="lampTER">
+                        <span class="lamp-dot"></span>
+                        <span class="lamp-label">TER</span>
+                    </div>
+                </div>
+
+                <div class="psych-badge">
+                    <i data-lucide="brain-circuit"></i>
+                    <span>Mehrabian Formula: 55/38/7</span>
+                </div>
+            </header>
+
+            <!-- Analysis Core -->
+            <div class="mer-grid">
+                
+                <!-- Left: Viewport & Recording -->
+                <div class="viewport-section">
+                    <div class="video-container">
+                        <video id="webcam" autoplay playsinline muted></video>
+                        <div class="overlay-visuals">
+                            <canvas id="visualGraph"></canvas>
+                        </div>
+                        
+                        <div class="recording-indicator" id="recIndicator">
+                            <span class="pulse-dot"></span>
+                            REC
+                        </div>
+                    </div>
+
+                    <div class="controls-area">
+                        <!-- Premium Video Controls (Universal Style) -->
+                        <div class="universal-controls">
+                            <div class="u-ctrl-wrap">
+                                <button class="u-ctrl-btn" id="toggleCam" title="Toggle Camera">
+                                    <i data-lucide="video"></i>
+                                </button>
+                                <div class="u-ctrl-label">Camera</div>
+                            </div>
+                            
+                            <div class="u-ctrl-wrap">
+                                <button class="u-ctrl-btn" id="toggleMic" title="Toggle Microphone">
+                                    <i data-lucide="mic"></i>
+                                </button>
+                                <div class="u-ctrl-label">Mic</div>
+                            </div>
+
+                            <div class="u-ctrl-wrap">
+                                <button class="u-ctrl-btn danger" id="cancelBtn" title="End Session & Exit">
+                                    <i data-lucide="phone-off"></i>
+                                </button>
+                                <div class="u-ctrl-label">End</div>
+                            </div>
+                        </div>
+
+                        <button class="mer-record-btn" id="recordBtn">
+                            <div class="btn-icon">
+                                <i data-lucide="mic" id="micIcon"></i>
+                            </div>
+                            <span id="btnText">Start Session</span>
+                        </button>
+                        <p class="instruction">Speak naturally while looking at the camera</p>
+                    </div>
+
+                    <!-- Live Transcription -->
+                    <div class="transcript-box" id="transcriptBox">
+                        <div class="box-label"><i data-lucide="type"></i> Live Transcript</div>
+                        <div id="transcriptText" class="placeholder">Awaiting input...</div>
+                    </div>
+                </div>
+
+                <!-- Right: Multimodal Fusion Results -->
+                <div class="results-section">
+                    
+                    <!-- Fusion Result (Big) -->
+                    <div class="fusion-card">
+                        <div class="card-label">Fused Emotional State</div>
+                        <div class="big-emoji" id="bigEmoji">😶</div>
+                        <div class="fusion-emotion" id="fusionLabel">Ready to start</div>
+                        <div class="fusion-conf-bar">
+                            <div class="conf-fill" id="fusionConfFill" style="width: 0%"></div>
+                        </div>
+                        <div class="fusion-conf-text" id="fusionConfText">0% Confidence</div>
+                    </div>
+
+                    <!-- Component Breakdown -->
+                    <div class="breakdown-grid">
+                        <!-- Visual (55%) -->
+                        <div class="component-card" id="cardFER">
+                            <div class="comp-header">
+                                <i data-lucide="camera"></i>
+                                <span>Visual (55%)</span>
+                            </div>
+                            <div class="comp-value" id="valFER">—</div>
+                            <div class="comp-mini-bar"><div class="mini-fill" id="fillFER"></div></div>
+                        </div>
+
+                        <!-- Vocal (38%) -->
+                        <div class="component-card" id="cardSER">
+                            <div class="comp-header">
+                                <i data-lucide="volume-2"></i>
+                                <span>Vocal (38%)</span>
+                            </div>
+                            <div class="comp-value" id="valSER">—</div>
+                            <div class="comp-mini-bar"><div class="mini-fill" id="fillSER"></div></div>
+                        </div>
+
+                        <!-- Verbal (7%) -->
+                        <div class="component-card" id="cardTER">
+                            <div class="comp-header">
+                                <i data-lucide="quote"></i>
+                                <span>Verbal (7%)</span>
+                            </div>
+                            <div class="comp-value" id="valTER">—</div>
+                            <div class="comp-mini-bar"><div class="mini-fill" id="fillTER"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Psych Insight -->
+                    <div class="insight-box" id="insightBox">
+                        <i data-lucide="sparkles"></i>
+                        <p id="insightText">The system will analyze your non-verbal cues alongside your words for a complete emotional profile.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="../js/mer.js"></script>
+    <script src="../js/global.js"></script>
+    <script src="../js/sidebar.js"></script>
+</body>
+</html>

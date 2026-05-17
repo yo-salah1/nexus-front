@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - NEXUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/about_us.css">
+    <link rel="icon" type="image/png" href="../assets/NEXUS_ICON_CROPPED.png">
+    <script src="../js/config.js"></script>
+</head>
+
+<body>
+    <canvas id="nexusParticles" class="global-particles"></canvas>
+
+    <!-- Unified Header Injection -->
+    <div id="nexus-header"></div>
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <canvas class="particle-canvas" id="heroParticles"></canvas>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i data-lucide="users" class="badge-icon"></i>
+                <span>About NEXUS</span>
+            </div>
+
+            <h1 class="hero-title">
+                Empowering Mental Wellness
+                <span class="gradient-text">Through AI Innovation</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                We're on a mission to make mental health support accessible to everyone, everywhere, at any time through
+                the power of artificial intelligence.
+            </p>
+        </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="story-section" id="story">
+        <div class="section-container">
+            <div class="story-grid">
+                <div class="story-content">
+                    <span class="section-badge">Our Story</span>
+                    <h2 class="section-title">How NEXUS Was Born</h2>
+                    <div class="story-text">
+                        <p>NEXUS began in 2025 when our founder experienced firsthand the challenges of accessing mental
+                            health support during a difficult time. Traditional therapy was expensive, waitlists were
+                            long, and help wasn't available when it was needed most.</p>
+
+                        <p>This experience sparked a vision: what if we could harness the power of AI to provide
+                            compassionate, intelligent support that's available 24/7? What if we could make mental
+                            wellness accessible to everyone, regardless of their location or financial situation?</p>
+
+                        <p>Today, NEXUS providing personalized emotional support through advanced AI technology. We're
+                            not replacing human therapists – we're complementing them, making mental health support more
+                            accessible and removing barriers to wellness.</p>
+                    </div>
+
+                    <div class="story-stats">
+                        <!-- <div class="stat-box">
+                        <div class="stat-number">50K+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div> -->
+                        <div class="stat-box">
+                            <div class="stat-number">2025</div>
+                            <div class="stat-label">Founded</div>
+                        </div>
+                        <!-- <div class="stat-box">
+                        <div class="stat-number">150+</div>
+                        <div class="stat-label">Countries</div>
+                    </div> -->
+                    </div>
+                </div>
+
+                <!-- <div class="story-image">
+                <div class="image-placeholder">
+                    <i data-lucide="image" class="placeholder-icon"></i>
+                    <span class="placeholder-text">Our Story Image</span>
+                </div>
+            </div> -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission & Vision Section -->
+    <section class="mission-vision-section" id="mission">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Our Purpose</span>
+                <h2 class="section-title">Mission & Vision</h2>
+            </div>
+
+            <div class="mv-grid">
+                <div class="mv-card mission-card">
+                    <div class="mv-icon-wrap">
+                        <i data-lucide="target" class="mv-icon"></i>
+                    </div>
+                    <h3 class="mv-title">Our Mission</h3>
+                    <p class="mv-text">
+                        To democratize mental health support by providing accessible, intelligent, and compassionate
+                        AI-powered companionship that empowers individuals to understand and manage their emotional
+                        well-being.
+                    </p>
+                    <ul class="mv-list">
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Make mental health support available 24/7</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Remove financial barriers to wellness</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Provide personalized, judgment-free support</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Complement professional mental health care</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mv-card vision-card">
+                    <div class="mv-icon-wrap">
+                        <i data-lucide="eye" class="mv-icon"></i>
+                    </div>
+                    <h3 class="mv-title">Our Vision</h3>
+                    <p class="mv-text">
+                        A world where everyone has instant access to emotional support and mental wellness resources,
+                        where AI technology helps reduce the global mental health crisis, and where seeking help is as
+                        simple as opening an app.
+                    </p>
+                    <ul class="mv-list">
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Lead AI innovation in mental health</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Reduce stigma around mental wellness</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Reach 500k users by 2027</span>
+                        </li>
+                        <li>
+                            <i data-lucide="check-circle" class="list-icon"></i>
+                            <span>Partner with healthcare providers globally</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Values Section -->
+    <section class="values-section" id="values">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">What We Stand For</span>
+                <h2 class="section-title">Our Core Values</h2>
+            </div>
+
+            <div class="values-grid">
+                <!-- Values injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Meet the Team Section -->
+    <section class="team-section" id="team">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">The People Behind NEXUS</span>
+                <h2 class="section-title">Meet Our Team</h2>
+                <p class="section-desc">Passionate experts dedicated to revolutionizing mental health support</p>
+            </div>
+            <!-- <div>
+            <h1>Seba Ahmed</h1>
+            <div>Yousif Salah</div>
+            <div>Nada Hassan</div>
+            <div>Shahd Gamal</div>
+            <div>Ahmed Seif</div>
+            <div>Nada Ahmed</div>
+        </div> -->
+
+            <div class="team-grid">
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact CTA Section -->
+    <section class="contact-cta-section">
+        <canvas class="particle-canvas" id="ctaParticles"></canvas>
+
+        <div class="cta-content">
+            <div class="cta-icon-wrap">
+                <i data-lucide="mail" class="cta-main-icon"></i>
+            </div>
+
+            <h2 class="cta-title">Want to Get in Touch?</h2>
+            <p class="cta-desc">Whether you have questions, feedback, or partnership opportunities, we'd love to hear
+                from you.</p>
+
+            <div class="contact-options">
+                <a href="mailto:hello@nexus.ai" class="contact-btn">
+                    <i data-lucide="mail" class="contact-icon"></i>
+                    <div class="contact-info">
+                        <div class="contact-label">Email Us</div>
+                        <div class="contact-value">nexus.ai.fci@gmail.com</div>
+                    </div>
+                </a>
+
+                <a href="help_support.html" class="contact-btn">
+                    <i data-lucide="message-circle" class="contact-icon"></i>
+                    <div class="contact-info">
+                        <div class="contact-label">Support Center</div>
+                        <div class="contact-value">Get Help</div>
+                    </div>
+                </a>
+
+                <a href="#" class="contact-btn">
+                    <i data-lucide="linkedin" class="contact-icon"></i>
+                    <div class="contact-info">
+                        <div class="contact-label">Connect</div>
+                        <div class="contact-value">LinkedIn</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="cta-divider">
+                <span class="divider-text">or</span>
+            </div>
+
+            <a href="ai_chat.html" class="cta-primary-large">
+                <span>Start Using NEXUS Today</span>
+                <i data-lucide="arrow-right" class="cta-icon"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer injected by global.js -->
+    <div id="nexus-footer"></div>
+
+    <script src="../js/about_us.js"></script>
+    <script src="../js/global.js"></script>
+</body>
+
+</html>
