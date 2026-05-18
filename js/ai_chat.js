@@ -332,7 +332,9 @@ async function loadChatHistory() {
 // ==================== KEYBOARD ====================
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-        document.getElementById('chatTypeSubmenu').classList.remove('active');
-        document.getElementById('newChatNav').classList.remove('active');
+        const chatTypeSubmenu = document.getElementById('chatTypeSubmenu');
+        const newChatNav = document.getElementById('newChatNav');
+        if (chatTypeSubmenu) chatTypeSubmenu.classList.remove('active');
+        if (newChatNav) newChatNav.classList.remove('active');
     }
 });

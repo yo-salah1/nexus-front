@@ -304,9 +304,9 @@ function initMobileSidebarToggle() {
         document.body.classList.toggle('sidebar-open', sidebar.classList.contains('open'));
     });
     
-    // Close sidebar when clicking outside on mobile
+    // Close sidebar when clicking outside on mobile & tablet
     document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileSidebarToggle.contains(e.target)) {
+        if (window.innerWidth <= 1024 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileSidebarToggle.contains(e.target)) {
             sidebar.classList.remove('open');
             document.body.classList.remove('sidebar-open');
         }

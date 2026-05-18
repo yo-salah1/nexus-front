@@ -25,25 +25,117 @@
     <script src="../js/config.js"></script>
     
     <style>
+        /* Viewport-Compact overrides for the MER Live Dashboard */
+        .mer-main {
+            padding: 1.25rem !important;
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+        
+        .mer-header {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .mer-header h1 {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.15rem !important;
+        }
+
+        .mer-header p {
+            font-size: 0.75rem !important;
+        }
+
+        .mer-grid-container {
+            height: calc(100vh - 90px) !important;
+            min-height: 0;
+        }
+
+        .video-container {
+            max-height: 260px !important;
+            border-radius: 16px !important;
+        }
+
+        .controls-area {
+            padding: 0.75rem !important;
+            border-radius: 16px !important;
+        }
+
+        .universal-controls {
+            margin-bottom: 0.75rem !important;
+            gap: 1.25rem !important;
+        }
+
+        .mer-record-btn {
+            height: 44px !important;
+            border-radius: 22px !important;
+            font-size: 0.9rem !important;
+            width: 210px !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .btn-icon {
+            width: 24px !important;
+            height: 24px !important;
+        }
+
+        .transcript-box {
+            padding: 0.75rem !important;
+            border-radius: 16px !important;
+            min-height: 60px !important;
+        }
+
+        .fusion-card {
+            padding: 0.75rem !important;
+            border-radius: 16px !important;
+        }
+
+        .big-emoji {
+            font-size: 2.5rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .fusion-emotion {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .fusion-conf-bar {
+            height: 6px !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+
         .live-chat-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            border-radius: 16px;
             backdrop-filter: blur(16px);
-            padding: 20px;
+            padding: 16px;
             height: 100%;
             display: flex;
             flex-direction: column;
+            min-height: 200px !important;
         }
 
         .chat-bubble {
-            padding: 12px 16px;
-            border-radius: 16px;
+            padding: 10px 14px;
+            border-radius: 14px;
             max-width: 85%;
-            font-size: 13.5px;
-            line-height: 1.5;
-            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.45;
+            margin-bottom: 10px;
             animation: fadeInBubble 0.3s ease-out;
+        }
+
+        .chat-bubble-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            display: block;
         }
 
         .chat-bubble.user {
@@ -124,10 +216,10 @@
             </header>
 
             <!-- Grid Layout -->
-            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mer-grid-container flex-1">
                 
                 <!-- LEFT COLUMN (Xl: 7 Cols) - Webcams & Controls -->
-                <div class="xl:col-span-7 space-y-6">
+                <div class="xl:col-span-7 flex flex-col gap-4 h-full min-h-0">
                     <div class="video-container relative rounded-2xl overflow-hidden border border-white/8 bg-black/30 aspect-video">
                         <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
                         <div class="overlay-visuals absolute inset-0 pointer-events-none">
@@ -165,6 +257,25 @@
                             </div>
                         </div>
 
+                        <!-- Microphone Device Selector -->
+                        <div class="mic-selector-wrap flex flex-col gap-1.5 w-full max-w-xs mb-4">
+                            <label for="micSelect" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 justify-center">
+                                <i data-lucide="settings" class="w-3.5 h-3.5 text-blue-400"></i>
+                                <span>Select Active Microphone</span>
+                            </label>
+                            <select id="micSelect" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition cursor-pointer">
+                                <option value="" disabled selected>Enumerating audio devices...</option>
+                            </select>
+                        </div>
+
+                        <!-- Live Microphone Audio Waveform Visualizer -->
+                        <div class="visualizer-wrap w-full max-w-sm h-14 bg-black/40 border border-white/10 rounded-xl overflow-hidden mb-6 relative">
+                            <canvas id="micVisualizer" class="w-full h-full"></canvas>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <span id="visualizerFallback" class="text-[9px] font-medium text-slate-500 uppercase tracking-widest">Visualizer Inactive</span>
+                            </div>
+                        </div>
+
                         <button class="mer-record-btn flex items-center gap-3 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/25" id="recordBtn">
                             <div class="btn-icon">
                                 <i data-lucide="mic" id="micIcon" class="w-5 h-5"></i>
@@ -174,18 +285,27 @@
                         <p class="instruction text-xs text-slate-400 mt-3 font-medium">Click to connect, speak naturally, and watch the AI companion reply.</p>
                     </div>
 
-                    <!-- Live Transcription Output -->
+                    <!-- Live Transcription Output / Hybrid Input -->
                     <div class="transcript-box p-4 bg-white/3 border border-white/5 rounded-2xl" id="transcriptBox">
-                        <div class="box-label text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5 mb-2">
-                            <i data-lucide="type" class="w-4 h-4 text-blue-400"></i>
-                            <span>Active Speech Input</span>
+                        <div class="box-label text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center justify-between mb-2">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="type" class="w-4 h-4 text-blue-400"></i>
+                                <span>Active Speech Input / Type Fallback</span>
+                            </span>
+                            <span class="text-[9px] text-slate-500 font-medium">Speak or type directly</span>
                         </div>
-                        <div id="transcriptText" class="text-sm font-medium text-slate-300 placeholder italic">Awaiting voice capture...</div>
+                        <div class="flex gap-2">
+                            <input type="text" id="transcriptInput" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition placeholder-slate-500" placeholder="Awaiting voice capture or type here..." />
+                            <button id="sendTextBtn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                <span>Send</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- RIGHT COLUMN (Xl: 5 Cols) - Live AI Dialogue & MER Fusion -->
-                <div class="xl:col-span-5 space-y-6 flex flex-col h-full justify-between">
+                <div class="xl:col-span-5 flex flex-col gap-4 h-full min-h-0">
                     
                     <!-- Fused State Card -->
                     <div class="fusion-card p-6 bg-white/4 border border-white/8 rounded-2xl text-center flex flex-col items-center">
@@ -196,13 +316,41 @@
                             <div class="conf-fill bg-blue-500 h-full rounded-full transition-all duration-300" id="fusionConfFill" style="width: 0%"></div>
                         </div>
                         <div class="fusion-conf-text text-xs text-slate-400 mt-1" id="fusionConfText">0% Confidence</div>
+                        
+                        <!-- Sensory Modality Breakdown Panel -->
+                        <div class="sensory-breakdown w-full grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/5">
+                            <div class="sensor-badge p-2 bg-white/3 border border-white/5 rounded-xl text-center">
+                                <div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                                    <i data-lucide="video" class="w-2.5 h-2.5 text-cyan-400"></i>
+                                    <span>وجهك (Face)</span>
+                                </div>
+                                <div id="badgeFER" class="text-xs font-extrabold text-slate-400">Neutral</div>
+                            </div>
+                            <div class="sensor-badge p-2 bg-white/3 border border-white/5 rounded-xl text-center">
+                                <div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                                    <i data-lucide="mic" class="w-2.5 h-2.5 text-violet-400"></i>
+                                    <span>صوتك (Voice)</span>
+                                </div>
+                                <div id="badgeSER" class="text-xs font-extrabold text-slate-400">Neutral</div>
+                            </div>
+                            <div class="sensor-badge p-2 bg-white/3 border border-white/5 rounded-xl text-center">
+                                <div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                                    <i data-lucide="type" class="w-2.5 h-2.5 text-amber-400"></i>
+                                    <span>نبرتك (Text)</span>
+                                </div>
+                                <div id="badgeTER" class="text-xs font-extrabold text-slate-400">Neutral</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Interactive Real-Time AI Chat Card -->
-                    <div class="live-chat-card flex-1 min-h-[300px]">
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b border-white/5 pb-2">
-                            <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
-                            <span>Empathetic Companion Dialogue</span>
+                    <!-- Interactive Real-Time AI Chat Card (NEXUS LLM Response) -->
+                    <div class="live-chat-card flex-1 min-h-[200px]">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between border-b border-white/5 pb-2">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="message-square" class="w-4 h-4 text-emerald-400"></i>
+                                <span>رد المساعد الذكي — NEXUS LLM Response</span>
+                            </span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded">Active LLM</span>
                         </div>
                         
                         <div id="chatHistory" class="flex-1 overflow-y-auto space-y-3 pr-2 flex flex-col">

@@ -8,7 +8,6 @@ let currentSessionId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
-    initSidebarNavigation();
     loadActiveSettings();
     loadLiveMetrics();
     loadPromptTemplate();
@@ -23,18 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('personaSelector').addEventListener('change', loadPromptTemplate);
     setupProviderCards();
 });
-
-// 1. NAVIGATION & SIDEBAR ACTIVE STATES
-function initSidebarNavigation() {
-    const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-
-    if (mobileSidebarToggle && sidebar) {
-        mobileSidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-    }
-}
 
 // 2. SETUP LLM PROVIDER SELECTIONS
 function setupProviderCards() {
@@ -189,6 +176,7 @@ async function loadLiveMetrics() {
         updateStatusLamp('FER', metrics.sensorStatus?.fer);
         updateStatusLamp('SER', metrics.sensorStatus?.ser);
         updateStatusLamp('TER', metrics.sensorStatus?.ter);
+        updateStatusLamp('LLM', metrics.sensorStatus?.llm);
 
     } catch (err) {
         console.warn("Metrics endpoint connection down, waiting for server fallback...");

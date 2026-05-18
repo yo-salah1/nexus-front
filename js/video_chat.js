@@ -3,18 +3,18 @@
 const API_BASE_URL = window.NEXUS_CONFIG.API_BASE_URL;
 const FER_API_URL = window.NEXUS_CONFIG.FER_API_URL;
 
-let stream       = null;
-let isCameraOn   = false;
-let isMicOn      = false;
-let isFERActive  = false;
-let ferInterval  = null;
-let ferCanvas    = document.createElement('canvas');
-let ferCtx       = ferCanvas.getContext('2d');
+let stream = null;
+let isCameraOn = false;
+let isMicOn = false;
+let isFERActive = false;
+let ferInterval = null;
+let ferCanvas = document.createElement('canvas');
+let ferCtx = ferCanvas.getContext('2d');
 
 const EMOTION_COLORS = {
-    Happy:   '#f59e0b',
-    Sad:     '#60a5fa',
-    Angry:   '#ef4444',
+    Happy: '#f59e0b',
+    Sad: '#60a5fa',
+    Angry: '#ef4444',
     Fearful: '#a78bfa',
     Disgust: '#10b981',
     Neutral: '#9ca3af'
@@ -25,37 +25,10 @@ const EMOTION_COLORS = {
 // ==========================
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
-    initSidebar();
     initControls();
     initParticles();
     console.log('✨ NEXUS Video - FER Ready');
 });
-
-// ==========================
-// SIDEBAR
-// ==========================
-function initSidebar() {
-    const sidebar        = document.getElementById('sidebar');
-    const sidebarToggle  = document.getElementById('sidebarToggle');
-    const newChatNav     = document.getElementById('newChatNav');
-    const chatTypeSubmenu = document.getElementById('chatTypeSubmenu');
-
-    if (sidebarToggle)
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
-
-    if (newChatNav)
-        newChatNav.addEventListener('click', () => {
-            chatTypeSubmenu.classList.toggle('active');
-            newChatNav.classList.toggle('active');
-        });
-
-    document.querySelectorAll('.nav-item:not(#newChatNav)').forEach(item => {
-        item.addEventListener('click', () => {
-            chatTypeSubmenu.classList.remove('active');
-            newChatNav.classList.remove('active');
-        });
-    });
-}
 
 // ==========================
 // CONTROLS
@@ -78,9 +51,9 @@ document.addEventListener('keydown', (e) => {
 // CAMERA
 // ==========================
 async function toggleCamera() {
-    const videoEl    = document.getElementById('videoFeed');
+    const videoEl = document.getElementById('videoFeed');
     const placeholder = document.getElementById('cameraOffIcon');
-    const cameraBtn  = document.getElementById('cameraBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
 
     if (!isCameraOn) {
         try {
@@ -166,7 +139,7 @@ async function runFER() {
     if (!videoEl || videoEl.readyState < 2) return;
 
     // Capture frame
-    ferCanvas.width  = videoEl.videoWidth  || 640;
+    ferCanvas.width = videoEl.videoWidth || 640;
     ferCanvas.height = videoEl.videoHeight || 480;
     ferCtx.drawImage(videoEl, 0, 0);
 
@@ -227,9 +200,9 @@ function updateEmotionUI(emotion, confidence, allProbs) {
             <div class="prob-row">
                 <span class="prob-label">${label}</span>
                 <div class="prob-bar-wrap">
-                    <div class="prob-bar-fill" style="width:${(prob*100).toFixed(0)}%;background:${EMOTION_COLORS[label] || '#9ca3af'}"></div>
+                    <div class="prob-bar-fill" style="width:${(prob * 100).toFixed(0)}%;background:${EMOTION_COLORS[label] || '#9ca3af'}"></div>
                 </div>
-                <span class="prob-pct">${(prob*100).toFixed(0)}%</span>
+                <span class="prob-pct">${(prob * 100).toFixed(0)}%</span>
             </div>
         `).join('');
     }
@@ -269,7 +242,7 @@ function initParticles() {
     const canvas = document.getElementById('particleCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    canvas.width  = window.innerWidth;
+    canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     const particles = Array.from({ length: 25 }, () => ({
@@ -295,7 +268,7 @@ function initParticles() {
     animate();
 
     window.addEventListener('resize', () => {
-        canvas.width  = window.innerWidth;
+        canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     });
 }

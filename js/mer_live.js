@@ -1,168 +1,194 @@
 /* ============================================================
-   NEXUS — MER Live Session AI Companion Controller
+   NEXUS — MER Live Session AI Companion Controller (Fixed)
    ============================================================ */
 
 const CONFIG = window.NEXUS_CONFIG;
 const API_BASE = CONFIG.API_BASE_URL;
 
 const EMOJI_MAP = {
-    'Neutral': '😶',
-    'Happy':   '😊',
-    'Sad':     '😢',
-    'Angry':   '😠',
-    'Fearful': '😨',
-    'Disgust': '🤢'
+    'Neutral': '😶', 'Happy': '😊', 'Sad': '😢',
+    'Angry': '😠', 'Fearful': '😨', 'Disgust': '🤢'
 };
-
 const COLORS = {
     'Happy': '#f59e0b', 'Sad': '#60a5fa', 'Angry': '#ef4444',
     'Fearful': '#a78bfa', 'Disgust': '#10b981', 'Neutral': '#9ca3af'
 };
 
-// App State
-let isRecording = false;
-let mediaRecorder = null;
-let audioChunks = [];
-let recognition = null;
-let finalTranscript = "";
-let stream = null;
-let captureCanvas = document.createElement('canvas');
-let isCamMuted = false;
-let isMicMuted = false;
-let currentSessionId = null;
+// ── State ──────────────────────────────────────────────────
+let isRecording         = false;
+let mediaRecorder       = null;
+let audioChunks         = [];
+let recognition         = null;
+let isRecognitionActive = false;
+let recognitionRestartTimer = null;
+let finalTranscript     = '';
+let stream              = null;
+let captureCanvas       = document.createElement('canvas');
+let isCamMuted          = false;
+let isMicMuted          = false;
+let currentSessionId    = null;
 
-// UI Elements
-const btn = document.getElementById('recordBtn');
-const btnText = document.getElementById('btnText');
-const micIcon = document.getElementById('micIcon');
-const recIndicator = document.getElementById('recIndicator');
-const transcriptText = document.getElementById('transcriptText');
-const webcam = document.getElementById('webcam');
-const chatHistory = document.getElementById('chatHistory');
 
+
+// Visualizer state
+let audioCtx            = null;
+let analyser            = null;
+let drawVisual          = null;
+
+// ── UI Elements ───────────────────────────────────────────
+const btn             = document.getElementById('recordBtn');
+const btnText         = document.getElementById('btnText');
+const micIcon         = document.getElementById('micIcon');
+const recIndicator    = document.getElementById('recIndicator');
+const transcriptInput = document.getElementById('transcriptInput');
+const webcam          = document.getElementById('webcam');
+const chatHistory     = document.getElementById('chatHistory');
+
+
+
+// ── DOMContentLoaded ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     lucide.createIcons();
-    initWebcam();
     initSpeechRecognition();
-    btn.addEventListener('click', toggleSession);
+    initWebcam().catch(e => console.warn('initWebcam:', e));
+    enumerateAudioDevices().catch(e => console.warn('enumDevices:', e));
 
+    btn.addEventListener('click', toggleSession);
     document.getElementById('toggleCam').addEventListener('click', toggleCamera);
     document.getElementById('toggleMic').addEventListener('click', toggleMicrophone);
     document.getElementById('cancelBtn').addEventListener('click', resetSession);
+    document.getElementById('sendTextBtn').addEventListener('click', sendTypedMessage);
+    document.getElementById('transcriptInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendTypedMessage();
+    });
 });
 
-function resetSession() {
-    // Stop Speech synthesis if speaking
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+// ── Session Control ───────────────────────────────────────
+async function toggleSession() {
+    isRecording ? await stopSession() : await startSession();
+}
+
+async function startSession() {
+    if (!stream) {
+        alert('محتاج ميكروفون عشان تبدأ.');
+        return;
+    }
+    stopSpeaking();
+    isRecording     = true;
+    finalTranscript = '';
+    audioChunks     = [];
+
+    btn.classList.add('recording', 'speaking-pulse');
+    btnText.textContent = 'Finish Speaking';
+    micIcon.setAttribute('data-lucide', 'mic-off');
+    recIndicator.classList.add('active');
+    if (transcriptInput) transcriptInput.value = 'Listening...';
+    lucide.createIcons();
+
+    try {
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : 'audio/webm';
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+    } catch {
+        mediaRecorder = new MediaRecorder(stream);
     }
 
+    mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+    };
+    mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, 
+            { type: mediaRecorder.mimeType || 'audio/webm' });
+        const validAudio = audioBlob.size > 1000 ? audioBlob : null;
+        const frameBlob = await captureVideoFrame();
+        await performEmpatheticAIInteraction(
+            frameBlob, validAudio, finalTranscript.trim()
+        );
+    };
+
+    mediaRecorder.start();
+    startRecognition();
+}
+
+async function stopSession() {
+    isRecording = false;
+    btn.classList.remove('recording', 'speaking-pulse');
+    btnText.textContent = 'Processing reply...';
+    micIcon.setAttribute('data-lucide', 'loader');
+    recIndicator.classList.remove('active');
+    lucide.createIcons();
+
+    stopRecognition();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+}
+
+function resetSession() {
+    stopSpeaking();
     if (isRecording) {
         isRecording = false;
-        if (mediaRecorder) mediaRecorder.stop();
-        if (recognition) recognition.stop();
+        stopRecognition();
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
     }
-    
-    // UI Resets
-    btn.classList.remove('recording');
-    btnText.textContent = "Connect Live Companion";
+    btn.classList.remove('recording', 'speaking-pulse');
+    btnText.textContent = 'Connect Live Companion';
     micIcon.setAttribute('data-lucide', 'mic');
     recIndicator.classList.remove('active');
-    
-    // Clear Results
+
     document.getElementById('bigEmoji').textContent = '😶';
     document.getElementById('fusionLabel').textContent = 'Companion Unconnected';
     document.getElementById('fusionConfFill').style.width = '0%';
     document.getElementById('fusionConfText').textContent = '0% Confidence';
-    
-    transcriptText.textContent = "Awaiting voice capture...";
-    transcriptText.classList.add('placeholder');
-    chatHistory.innerHTML = `<div class="text-xs text-slate-500 py-6 text-center italic">Connect the Live Companion and start speaking to activate dialogue stream.</div>`;
-    
+    if (transcriptInput) {
+        transcriptInput.value = '';
+        transcriptInput.placeholder = 'Awaiting voice capture or type here...';
+    }
+    chatHistory.innerHTML = `Connect the Live Companion and start speaking to activate dialogue stream.`;
+
     lucide.createIcons();
     if (window.checkSystemHealth) checkSystemHealth();
-    
-    // Redirect to Home
     window.location.href = 'home.html';
 }
 
-function toggleCamera() {
-    if (!stream) return;
-    const videoTrack = stream.getVideoTracks()[0];
-    if (videoTrack) {
-        isCamMuted = !isCamMuted;
-        videoTrack.enabled = !isCamMuted;
-        const btn = document.getElementById('toggleCam');
-        btn.classList.toggle('active', !isCamMuted);
-        btn.querySelector('i').setAttribute('data-lucide', isCamMuted ? 'video-off' : 'video');
-        lucide.createIcons();
-    }
-}
-
-function toggleMicrophone() {
-    if (!stream) return;
-    const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) {
-        isMicMuted = !isMicMuted;
-        audioTrack.enabled = !isMicMuted;
-        const btn = document.getElementById('toggleMic');
-        btn.classList.toggle('active', !isMicMuted);
-        btn.querySelector('i').setAttribute('data-lucide', isMicMuted ? 'mic-off' : 'mic');
-        lucide.createIcons();
-    }
-}
-
-async function initWebcam() {
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { width: 1280, height: 720 }, 
-            audio: true 
-        });
-        webcam.srcObject = stream;
-        
-        document.getElementById('toggleCam').classList.add('active');
-        document.getElementById('toggleMic').classList.add('active');
-    } catch (err) {
-        console.error("Webcam error:", err);
-        alert("Camera and Mic access required for MER Live Session.");
-    }
-}
-
+// ── Speech Recognition ────────────────────────────────────
 function initSpeechRecognition() {
-    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!window.SpeechRecognition) {
-        console.warn("SpeechRecognition not supported in this browser.");
-        return;
+        console.warn('SpeechRecognition not supported'); return;
     }
 
     recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'ar-EG'; // Support Arabic natively
+    recognition.continuous      = true;
+    recognition.interimResults  = true;
+    recognition.maxAlternatives = 1;
+    recognition.lang            = 'ar-EG';
+
+    recognition.onstart = () => { isRecognitionActive = true; };
 
     recognition.onresult = (event) => {
-        let interimTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript + " ";
+                finalTranscript += event.results[i][0].transcript + ' ';
             } else {
-                interimTranscript += event.results[i][0].transcript;
+                interim += event.results[i][0].transcript;
             }
         }
-        
-        const display = finalTranscript + interimTranscript;
-        transcriptText.textContent = display || "Listening...";
-        transcriptText.classList.remove('placeholder');
-        
-        // Interrupt/Barge-in: if user starts speaking while AI is speaking, cancel speech!
-        if (display.trim().length > 0 && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
-            console.log("🗣️ Barge-In trigger: Cancelling active TTS playback!");
-            window.speechSynthesis.cancel();
-            // Call backend interrupt to clear active tokens
+        const display = (finalTranscript + interim).trim();
+        if (transcriptInput && display) transcriptInput.value = display;
+
+        // Barge-in
+        if (isRecording && display.length > 2 && isTTSSpeaking) {
+            stopSpeaking();
             if (currentSessionId) {
                 fetch(`${API_BASE}/session/interrupt`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: currentSessionId })
                 }).catch(() => {});
             }
@@ -170,140 +196,169 @@ function initSpeechRecognition() {
     };
 
     recognition.onerror = (e) => {
-        console.warn("SpeechRecognition error:", e);
+        console.warn('Recognition error:', e.error);
+        isRecognitionActive = false;
+        if (isRecording && !['not-allowed','service-not-allowed'].includes(e.error)) {
+            scheduleRecognitionRestart();
+        }
+    };
+
+    recognition.onend = () => {
+        isRecognitionActive = false;
+        if (isRecording) scheduleRecognitionRestart();
     };
 }
 
-async function toggleSession() {
-    if (isRecording) {
-        await stopSession();
-    } else {
-        await startSession();
+function scheduleRecognitionRestart(delay = 300) {
+    clearTimeout(recognitionRestartTimer);
+    recognitionRestartTimer = setTimeout(() => {
+        if (isRecording && !isRecognitionActive && recognition) {
+            try { recognition.start(); } catch(e) {}
+        }
+    }, delay);
+}
+
+function startRecognition() {
+    if (!recognition || isRecognitionActive) return;
+    try { recognition.start(); } catch(e) {}
+}
+
+function stopRecognition() {
+    clearTimeout(recognitionRestartTimer);
+    isRecognitionActive = false;
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
+}
+
+// ── Camera / Mic Toggle ───────────────────────────────────
+async function initWebcam() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: true
+        });
+        webcam.srcObject = stream;
+        document.getElementById('toggleCam').classList.add('active');
+        document.getElementById('toggleMic').classList.add('active');
+        initAudioVisualizer(stream);
+    } catch {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            document.getElementById('toggleMic').classList.add('active');
+            webcam.style.display = 'none';
+            initAudioVisualizer(stream);
+        } catch {
+            alert('Microphone access required for MER session.');
+        }
     }
 }
 
-async function startSession() {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Cancel any lingering speech
-    }
-
-    isRecording = true;
-    finalTranscript = "";
-    audioChunks = [];
-    
-    // UI state
-    btn.classList.add('recording');
-    btn.classList.add('speaking-pulse');
-    btnText.textContent = "Finish Speaking";
-    micIcon.setAttribute('data-lucide', 'mic-off');
-    recIndicator.classList.add('active');
-    
-    transcriptText.textContent = "Listening...";
-    transcriptText.classList.add('placeholder');
-    
+function toggleCamera() {
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    isCamMuted = !isCamMuted;
+    track.enabled = !isCamMuted;
+    const b = document.getElementById('toggleCam');
+    b.classList.toggle('active', !isCamMuted);
+    b.querySelector('i').setAttribute('data-lucide', isCamMuted ? 'video-off' : 'video');
     lucide.createIcons();
-
-    // Start Audio Recorder
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-    mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-    };
-    mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const frameBlob = await captureVideoFrame();
-        await performEmpatheticAIInteraction(frameBlob, audioBlob, finalTranscript.trim());
-    };
-
-    mediaRecorder.start();
-    if (recognition) recognition.start();
 }
 
-async function stopSession() {
-    isRecording = false;
-    btn.classList.remove('recording');
-    btn.classList.remove('speaking-pulse');
-    btnText.textContent = "Processing reply...";
-    micIcon.setAttribute('data-lucide', 'loader');
-    recIndicator.classList.remove('active');
+// ── DOMContentLoaded is handled above, let's keep other parts in sync.
+function toggleMicrophone() {
+    if (!stream) return;
+    const track = stream.getAudioTracks()[0];
+    if (!track) return;
+    isMicMuted = !isMicMuted;
+    track.enabled = !isMicMuted;
+    const b = document.getElementById('toggleMic');
+    b.classList.toggle('active', !isMicMuted);
+    b.querySelector('i').setAttribute('data-lucide', isMicMuted ? 'mic-off' : 'mic');
     lucide.createIcons();
-
-    if (mediaRecorder) mediaRecorder.stop();
-    if (recognition) recognition.stop();
 }
 
+// ── Frame Capture ─────────────────────────────────────────
 function captureVideoFrame() {
     return new Promise((resolve) => {
-        if (isCamMuted || !webcam.srcObject) {
-            resolve(null);
-            return;
+        if (!webcam?.srcObject || isCamMuted || webcam.readyState < 2) {
+            resolve(null); return;
         }
-        
-        captureCanvas.width = webcam.videoWidth || 640;
-        captureCanvas.height = webcam.videoHeight || 480;
-        const ctx = captureCanvas.getContext('2d');
-        ctx.scale(-1, 1); // unmirror
-        ctx.drawImage(webcam, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
-        
-        captureCanvas.toBlob((blob) => {
-            resolve(blob);
-        }, 'image/jpeg', 0.85);
+        const w = webcam.videoWidth, h = webcam.videoHeight;
+        if (!w || !h) { resolve(null); return; }
+
+        try {
+            captureCanvas.width  = w;
+            captureCanvas.height = h;
+            const ctx = captureCanvas.getContext('2d');
+            ctx.save();
+            ctx.translate(w, 0);
+            ctx.scale(-1, 1); // unmirror
+            ctx.drawImage(webcam, 0, 0, w, h);
+            ctx.restore();
+            captureCanvas.toBlob(
+                (blob) => resolve(blob || null),
+                'image/jpeg', 0.82
+            );
+        } catch (e) {
+            console.warn('Frame capture error:', e);
+            resolve(null);
+        }
     });
 }
 
-// ── CORE MULTIMODAL AI TRANSACTION ──
+// ── Core AI Interaction ───────────────────────────────────
 async function performEmpatheticAIInteraction(frameBlob, audioBlob, transcript) {
-    let ferEmotion = "Neutral";
-    let serEmotion = "Neutral";
-    let emotionConf = 0.8;
+    let ferEmotion = 'Neutral', serEmotion = 'Neutral', emotionConf = 0.8;
 
     try {
-        // A. Parallel Sensor Analysis Calls
-        const fdImg = new FormData();
-        if (frameBlob) fdImg.append('file', frameBlob, 'frame.jpg');
-
-        const fdAud = new FormData();
-        fdAud.append('file', audioBlob, 'voice.webm');
-
+        const headers = { 'ngrok-skip-browser-warning': 'true' };
         const promises = [];
-        
-        // 1. Image sensor prediction
+
         if (frameBlob) {
+            const fd = new FormData();
+            fd.append('file', frameBlob, 'frame.jpg');
             promises.push(
-                fetch(`${API_BASE}/fer/analyze`, { method: 'POST', headers: {'ngrok-skip-browser-warning':'true'}, body: fdImg })
-                .then(r => r.json())
-                .catch(() => ({ emotion: 'Neutral', confidence: 0.0 }))
+                fetch(`${API_BASE}/fer/analyze`, { method:'POST', headers, body:fd })
+                    .then(r => r.ok ? r.json() : { emotion:'Neutral', confidence:0 })
+                    .catch(() => ({ emotion:'Neutral', confidence:0 }))
             );
         } else {
-            promises.push(Promise.resolve({ emotion: 'Neutral', confidence: 0.0 }));
+            promises.push(Promise.resolve({ emotion:'Neutral', confidence:0 }));
         }
 
-        // 2. Audio sensor prediction
-        promises.push(
-            fetch(`${API_BASE}/voice/analyze`, { method: 'POST', headers: {'ngrok-skip-browser-warning':'true'}, body: fdAud })
-            .then(r => r.json())
-            .catch(() => ({ emotion: 'Neutral', confidence: 0.0 }))
-        );
+        if (audioBlob) {
+            const fd = new FormData();
+            fd.append('file', audioBlob, 'voice.webm');
+            promises.push(
+                fetch(`${API_BASE}/voice/analyze`, { method:'POST', headers, body:fd })
+                    .then(r => r.ok ? r.json() : { emotion:'Neutral', confidence:0 })
+                    .catch(() => ({ emotion:'Neutral', confidence:0 }))
+            );
+        } else {
+            promises.push(Promise.resolve({ emotion:'Neutral', confidence:0 }));
+        }
 
         const [ferRes, serRes] = await Promise.all(promises);
-        
-        ferEmotion = ferRes.emotion || "Neutral";
-        serEmotion = serRes.emotion || "Neutral";
-        emotionConf = Math.max(ferRes.confidence || 0.0, serRes.confidence || 0.0) || 0.8;
+        ferEmotion  = ferRes.emotion    || 'Neutral';
+        serEmotion  = serRes.emotion    || 'Neutral';
+        emotionConf = Math.max(ferRes.confidence||0, serRes.confidence||0) || 0.8;
 
-        // B. Send sensory tokens and transcription to primary LLM Router!
+        let activeTranscript = transcript;
+        if (!activeTranscript?.trim() || activeTranscript === 'Listening...') {
+            if (serRes?.transcript?.trim()) {
+                activeTranscript = serRes.transcript.trim();
+                if (transcriptInput) transcriptInput.value = activeTranscript;
+            }
+        }
+
         currentSessionId = currentSessionId || 'live_sess_' + Date.now();
-        
-        // Render user message bubble immediately
-        appendChatBubble("user", transcript || "[Sensory cues sent silently]");
+        appendChatBubble('user', activeTranscript || '[Sensory cues sent silently]');
 
-        const response = await fetch(`${API_BASE}/chat`, {
+        const res = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
-            headers: {
-                'ngrok-skip-browser-warning': 'true',
-                'Content-Type': 'application/json'
-            },
+            headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: transcript || "...",
+                message: activeTranscript || '...',
                 sessionId: currentSessionId,
                 fer_emotion: ferEmotion,
                 ser_emotion: serEmotion,
@@ -311,87 +366,241 @@ async function performEmpatheticAIInteraction(frameBlob, audioBlob, transcript) 
             })
         });
 
-        if (!response.ok) throw new Error("API Connection broken");
-        const data = await response.json();
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        const data = await res.json();
 
-        // C. Update Dynamic MER Fusion UI Gauges
-        const fused = data.emotion || "Neutral";
-        const fusedPct = (data.confidence * 100).toFixed(0);
-        
-        document.getElementById('bigEmoji').textContent = EMOJI_MAP[fused] || '😶';
-        document.getElementById('fusionLabel').textContent = fused;
-        document.getElementById('fusionLabel').style.color = COLORS[fused] || '#e2e8f0';
+        const fused    = data.emotion   || 'Neutral';
+        const fusedPct = Math.round((data.confidence || 0) * 100);
+
+        document.getElementById('bigEmoji').textContent      = EMOJI_MAP[fused] || '😶';
+        document.getElementById('fusionLabel').textContent   = fused;
+        document.getElementById('fusionLabel').style.color   = COLORS[fused] || '#e2e8f0';
         document.getElementById('fusionConfFill').style.width = `${fusedPct}%`;
-        document.getElementById('fusionConfFill').style.backgroundColor = COLORS[fused] || '#3b82f6';
+        document.getElementById('fusionConfFill').style.backgroundColor = COLORS[fused];
         document.getElementById('fusionConfText').textContent = `${fusedPct}% Confidence`;
 
-        // D. Render Generative Assistant Reply Bubble
-        appendChatBubble("assistant", data.reply || "...");
+        const capitalize = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
-        // E. Synthesize Spoken Audio with Emotional Voice Modulation parameters!
-        speakEmotively(data.reply || "", fused);
+        const bFER = document.getElementById('badgeFER');
+        const bSER = document.getElementById('badgeSER');
+        const bTER = document.getElementById('badgeTER');
+        if (bFER) { bFER.textContent = ferEmotion; bFER.style.color = COLORS[ferEmotion]||'#9ca3af'; }
+        if (bSER) { bSER.textContent = serEmotion; bSER.style.color = COLORS[serEmotion]||'#9ca3af'; }
+        if (bTER) {
+            const t = capitalize(data.ter_emotion || 'Neutral');
+            bTER.textContent = t; bTER.style.color = COLORS[t]||'#9ca3af';
+        }
+
+        appendChatBubble('assistant', data.reply || '...');
+        speakEmotively(data.reply || '', fused);
 
     } catch (err) {
-        console.error(err);
-        appendChatBubble("assistant", "سامحني يا غالي، حصلت مشكلة في الربط بالسيرفر. فضفضلي تاني وهكون معاك. 🤍");
-        speakEmotively("سامحني يا غالي، حصلت مشكلة في الربط بالسيرفر. فضفضلي تاني وهكون معاك.", "Sad");
+        console.error('AI Interaction error:', err);
+        const fallback = 'سامحني يا غالي، حصلت مشكلة في الربط بالسيرفر. فضفضلي تاني وهكون معاك. 🤍';
+        appendChatBubble('assistant', fallback);
+        speakEmotively(fallback, 'Sad');
     } finally {
-        // Restore CTA state
-        btnText.textContent = "Connect Live Companion";
+        btnText.textContent = 'Connect Live Companion';
         micIcon.setAttribute('data-lucide', 'mic');
         lucide.createIcons();
     }
 }
 
-// ── RENDER DIALOGUE BUBBLES ──
-function appendChatBubble(role, text) {
-    // Clear placeholder text if first message
-    if (chatHistory.querySelector('div.text-slate-500')) {
-        chatHistory.innerHTML = '';
-    }
+/* ============================================================
+   NEXUS Edge TTS Engine — يستبدل كل كود Web Speech القديم
+   ============================================================ */
 
-    const bubble = document.createElement('div');
+let currentAudio    = null;   // الـ Audio object الشغال دلوقتي
+let ttsQueue        = [];     // طابور النصوص
+let isTTSSpeaking   = false;  // flag
+
+/**
+ * الفنكشن الرئيسية — بتستدعيها بدل speakEmotively القديمة
+ * @param {string} text    - النص اللي هيتاقال
+ * @param {string} emotion - Neutral | Happy | Sad | Angry | Fearful | Disgust
+ */
+async function speakEmotively(text, emotion = "Neutral") {
+    if (!text?.trim()) return;
+
+    // وقف أي كلام شغال وفضي الطابور
+    stopSpeaking();
+
+    const cleaned = text.replace(/[*_~`#]/g, "").trim();
+    if (!cleaned) return;
+
+    ttsQueue.push({ text: cleaned, emotion });
+    if (!isTTSSpeaking) processNextTTS();
+}
+
+async function processNextTTS() {
+    if (ttsQueue.length === 0) {
+        isTTSSpeaking = false;
+        return;
+    }
+    isTTSSpeaking = true;
+    const { text, emotion } = ttsQueue.shift();
+
+    try {
+        const res = await fetch(`${API_BASE}/tts/synthesize`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({ text, emotion }),
+        });
+
+        if (!res.ok) {
+            console.warn("TTS API error:", res.status, await res.text());
+            isTTSSpeaking = false;
+            processNextTTS();
+            return;
+        }
+
+        const audioBlob = await res.blob();
+        const audioUrl  = URL.createObjectURL(audioBlob);
+
+        currentAudio = new Audio(audioUrl);
+
+        currentAudio.onended = () => {
+            URL.revokeObjectURL(audioUrl);  // حرر الذاكرة
+            currentAudio = null;
+            isTTSSpeaking = false;
+            processNextTTS();   // الكلمة الجاية في الطابور
+        };
+
+        currentAudio.onerror = (e) => {
+            console.warn("Audio playback error:", e);
+            URL.revokeObjectURL(audioUrl);
+            currentAudio = null;
+            isTTSSpeaking = false;
+            processNextTTS();
+        };
+
+        await currentAudio.play();
+        console.log(`TTS playing — emotion: ${emotion}, voice: ${res.headers.get("X-Voice")}`);
+
+    } catch (err) {
+        console.error("Edge TTS fetch failed:", err);
+        isTTSSpeaking = false;
+        processNextTTS();
+    }
+}
+
+/**
+ * بيوقف الكلام فوراً ويفضي الطابور
+ * استدعيها في barge-in وفي resetSession
+ */
+function stopSpeaking() {
+    if (currentAudio) {
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.pause();
+        currentAudio.src = "";
+        currentAudio = null;
+    }
+    ttsQueue     = [];
+    isTTSSpeaking = false;
+}
+
+// ── Chat Bubbles ──────────────────────────────────────────
+function appendChatBubble(role, text) {
+    if (chatHistory.querySelector('div.text-slate-500')) chatHistory.innerHTML = '';
+    const bubble  = document.createElement('div');
     bubble.className = `chat-bubble ${role}`;
-    bubble.textContent = text;
+    const label   = document.createElement('span');
+    label.className = 'chat-bubble-label';
+    label.textContent = role === 'user'
+        ? 'أنت — You' : 'المساعد الذكي — NEXUS LLM Response';
+    label.style.color = role === 'user' ? '#a1a1aa' : '#34d399';
+    const content = document.createElement('div');
+    content.textContent = text;
+    bubble.appendChild(label);
+    bubble.appendChild(content);
     chatHistory.appendChild(bubble);
-    
-    // Auto Scroll to bottom
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-// ── EMOTIONAL TTS VOICE SYNTHESIS ENGINE ──
-function speakEmotively(text, emotion) {
-    if (!('speechSynthesis' in window)) return;
-    
-    // Cancel active synthesis first to clear buffer
-    window.speechSynthesis.cancel();
-    
-    // Standardize string formatting
-    const cleanedText = text.replace(/[*_~`]/g, '');
-    const utterance = new SpeechSynthesisUtterance(cleanedText);
-    
-    // Auto-detect language
-    const isArabic = /[\u0600-\u06FF]/.test(cleanedText);
-    utterance.lang = isArabic ? 'ar-EG' : 'en-US';
-    
-    // Dynamic Parameter Modulation based on fused emotion!
-    if (emotion === 'Sad') {
-        utterance.rate = 0.76; // Softer & Slower
-        utterance.pitch = 0.85; // Calmer and lower tone
-    } else if (emotion === 'Happy') {
-        utterance.rate = 1.16; // Expressive & Fast
-        utterance.pitch = 1.15; // Energetic and bright pitch
-    } else if (emotion === 'Fearful') {
-        utterance.rate = 0.85; // Grounding pace
-        utterance.pitch = 1.0;
-    } else if (emotion === 'Angry') {
-        utterance.rate = 0.92; // Grounded & emotionally controlled
-        utterance.pitch = 0.95;
-    } else {
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-    }
+// ── Typed Message ─────────────────────────────────────────
+async function sendTypedMessage() {
+    if (!transcriptInput) return;
+    const val = transcriptInput.value.trim();
+    if (!val || val === 'Awaiting voice capture or type here...'
+             || val === 'Listening...') return;
 
-    console.log(`🔊 Speaking with Emotional Voice Modulation [Rate: ${utterance.rate}, Pitch: ${utterance.pitch}]`);
-    window.speechSynthesis.speak(utterance);
+    btnText.textContent = 'Processing reply...';
+    micIcon.setAttribute('data-lucide', 'loader');
+    lucide.createIcons();
+
+    try {
+        const frameBlob = await captureVideoFrame();
+        await performEmpatheticAIInteraction(frameBlob, null, val);
+    } catch(e) { console.error(e); }
+    finally { transcriptInput.value = ''; }
+}
+
+// ── Mic Selector & Visualizer ─────────────────────────────
+async function enumerateAudioDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const inputs  = devices.filter(d => d.kind === 'audioinput');
+    const select  = document.getElementById('micSelect');
+    if (!select) return;
+    select.innerHTML = '';
+    inputs.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Microphone ${i+1}`;
+        select.appendChild(opt);
+    });
+    select.addEventListener('change', () => switchMicrophone(select.value));
+}
+
+async function switchMicrophone(deviceId) {
+    if (!stream) return;
+    stream.getAudioTracks().forEach(t => t.stop());
+    try {
+        const ns = await navigator.mediaDevices.getUserMedia({
+            audio: { deviceId: { exact: deviceId } }
+        });
+        stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+        stream.addTrack(ns.getAudioTracks()[0]);
+        initAudioVisualizer(ns);
+    } catch(e) { console.error('Mic switch failed:', e); }
+}
+
+function initAudioVisualizer(audioStream) {
+    if (drawVisual) cancelAnimationFrame(drawVisual);
+    try {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx || audioCtx.state === 'closed') {
+            audioCtx = new AudioContext();
+        }
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        audioCtx.createMediaStreamSource(audioStream).connect(analyser);
+
+        const canvas    = document.getElementById('micVisualizer');
+        if (!canvas) return;
+        const canvasCtx = canvas.getContext('2d');
+        const bufLen    = analyser.frequencyBinCount;
+        const data      = new Uint8Array(bufLen);
+        const fallback  = document.getElementById('visualizerFallback');
+        if (fallback) fallback.style.display = 'none';
+
+        function draw() {
+            drawVisual = requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(data);
+            canvasCtx.fillStyle = 'rgba(0,0,0,0.2)';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            const bw = (canvas.width / bufLen) * 2.5;
+            let x = 0;
+            for (let i = 0; i < bufLen; i++) {
+                const bh = data[i] / 2.5;
+                canvasCtx.fillStyle = `hsla(${160 + i*2},100%,50%,0.85)`;
+                canvasCtx.fillRect(x, canvas.height - bh, bw - 2, bh);
+                x += bw;
+            }
+        }
+        draw();
+    } catch(e) { console.warn('Visualizer error:', e); }
 }

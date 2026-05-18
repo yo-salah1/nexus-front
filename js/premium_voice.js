@@ -5,6 +5,17 @@ let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let currentSessionId = null;
+let premiumVoices = [];
+
+function loadVoices() {
+    if ('speechSynthesis' in window) {
+        premiumVoices = window.speechSynthesis.getVoices();
+    }
+}
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+}
 
 const COLORS = {
     Happy:'#f59e0b', Sad:'#60a5fa', Angry:'#ef4444',
@@ -13,26 +24,9 @@ const COLORS = {
 
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
-    initSidebar();
     initVoice();
     initParticles();
 });
-
-// ── SIDEBAR ──
-function initSidebar() {
-    const sidebar         = document.getElementById('sidebar');
-    const sidebarToggle   = document.getElementById('sidebarToggle');
-    const newChatNav      = document.getElementById('newChatNav');
-    const chatTypeSubmenu = document.getElementById('chatTypeSubmenu');
-
-    if (sidebarToggle)
-        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
-    if (newChatNav)
-        newChatNav.addEventListener('click', () => {
-            chatTypeSubmenu.classList.toggle('active');
-            newChatNav.classList.toggle('active');
-        });
-}
 
 // ── VOICE ──
 function initVoice() {
@@ -118,6 +112,7 @@ async function processAudio() {
         });
         const chatData = await chatRes.json();
         showAICard(chatData.reply || '');
+        speakEmotively(chatData.reply || '', emotion);
 
         setStatus('Ready', false);
         setMicLabel('tap to speak');
@@ -227,4 +222,71 @@ function initParticles() {
 
 function genId() {
     return 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+// ── EMOTIONAL TTS VOICE SYNTHESIS ENGINE ──
+function speakEmotively(text, emotion) {
+    if (!('speechSynthesis' in window)) return;
+    
+    // Cancel active synthesis first to clear buffer
+    window.speechSynthesis.cancel();
+    
+    // Standardize string formatting
+    const cleanedText = text.replace(/[*_~`]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanedText);
+    window.activeUtterance = utterance; // Prevent garbage collection
+    
+    // Auto-detect language
+    const isArabic = /[\u0600-\u06FF]/.test(cleanedText);
+    utterance.lang = isArabic ? 'ar-EG' : 'en-US';
+    
+    // Select premium/natural voice if available
+    const voices = premiumVoices.length ? premiumVoices : window.speechSynthesis.getVoices();
+    let selectedVoice = null;
+    
+    if (isArabic) {
+        // Look for premium online/natural Arabic voices
+        selectedVoice = voices.find(v => v.lang.startsWith('ar') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Online')));
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('ar') && v.name.includes('Salma'));
+        }
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('ar') && v.name.includes('Naayf'));
+        }
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('ar') && v.name.includes('Hoda'));
+        }
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('ar'));
+        }
+    } else {
+        // Look for premium online/natural English voices
+        selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Online')));
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('David'));
+        }
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('en'));
+        }
+    }
+    
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        console.log(`🎙️ Selected Premium Voice: ${selectedVoice.name}`);
+    }
+    
+    // Dynamic Parameter Modulation based on fused emotion!
+    if (emotion === 'Sad') {
+        utterance.rate = 0.85; // Safe softer rate
+        utterance.pitch = 0.95; // Safe pitch
+    } else if (emotion === 'Happy') {
+        utterance.rate = 1.05; // Safe bright rate
+        utterance.pitch = 1.05; 
+    } else {
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+    }
+
+    console.log(`🔊 Speaking with Emotional Voice Modulation [Rate: ${utterance.rate}, Pitch: ${utterance.pitch}]`);
+    window.speechSynthesis.speak(utterance);
 }
